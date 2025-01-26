@@ -99,5 +99,7 @@ O front-end do sistema utiliza Bootstrap para criar uma interface responsiva e a
 
 📧 Contato
 Autor: Melque Lordelo
+
 E-mail: jmelquesantos@gmail.com
+
 LinkedIn: https://www.linkedin.com/in/josemelque-lordelo-5a524225/
