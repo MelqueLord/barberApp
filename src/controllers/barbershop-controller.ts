@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import status from "http-status"; // Biblioteca statuscode
 import * as BarbershopService from '../services/barbershop-service';
-import { stat } from 'fs';
+
 
 
 export const postBarbershop = async (req: Request, res: Response): Promise<Response> => {
@@ -13,7 +13,7 @@ export const postBarbershop = async (req: Request, res: Response): Promise<Respo
     const result = await BarbershopService.createBarbershopService(barbershop);
     console.log('Barbearia criada:', barbershop);
     // Retornando resposta de sucesso com código 201 (Created)
-    return res.status(status.OK).json({
+    return res.status(status.CREATED).json({
       message: 'Barbearia criada com sucesso!',
       data: result,
     });

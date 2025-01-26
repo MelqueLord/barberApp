@@ -6,7 +6,7 @@ const app = createApp();
 
 
 //tem que apontar oarquivo .env no config
-const port = process.env.PORT;
+const port = process.env.PORT || 3000;
 
 
 const startServer = async () => {
@@ -22,6 +22,7 @@ const startServer = async () => {
     } catch (err) {
       // Se ocorrer erro ao conectar, captura o erro e exibe
       console.error('Não foi possível conectar ao banco de dados:', err);
+      process.exit(1);
     }
   };
   

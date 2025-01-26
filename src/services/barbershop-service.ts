@@ -1,6 +1,6 @@
 import * as barbershopRepositories from "../repositories/barbershop-repositories";
 import { barbershopModel } from "../models/barbershop-models";
-import { error } from "console";
+
 
 export const createBarbershopService = async (
   barbershop: barbershopModel

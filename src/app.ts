@@ -1,4 +1,4 @@
-import express, { json } from "express";
+import express from "express";
 import routerBarbershop from "./routes/barbershop-routes";
 import routerHaircut from "./routes/haircut-routes";
 import  routerBarber  from "./routes/barber-routes"
