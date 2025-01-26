@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    //quando for conmvertido para javascript ira para o ECMA6
+        "target": "ES2020",                            
+        //converter com o modulo comum
+        "module": "commonjs",  
+       //local da compilação
+        "outDir": "./dist",
+        //par fazer todas as checahem de tipagem
+         "strict": true,
+         //pra ele consigar trabalhar em commomjs e modules
+         "esModuleInterop": true,
+         "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true                                     
+    
+  }
+}

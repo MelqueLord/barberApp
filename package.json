@@ -1,0 +1,40 @@
+{
+  "name": "barber-app-api",
+  "version": "1.0.0",
+  "description": "Api para gerenciamento de barbearias",
+  "license": "ISC",
+  "author": "Melque Lordelo",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "dist": "tsup src",
+    "start:dev": "tsx --env-file=.env src/server.ts",
+    "start:watch": "tsx watch --env-file=.env src/server.ts",
+    "start:dist": "npm run dist && node dist/src/index.js"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/http-status": "^0.2.30",
+    "@types/multer": "^1.4.12",
+    "@types/node": "^22.10.5",
+    "ts-node-dev": "^2.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "express-validator": "^7.2.1",
+    "http-status": "^2.1.0",
+    "http-status-codes": "^2.3.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.12.0",
+    "nodemailer": "^6.9.16",
+    "sequelize": "^6.37.5"
+  }
+}
