@@ -37,3 +37,49 @@ export const getAllBarberService = async (): Promise<barberModel[]> => {
     throw new Error("Falha ao processar os dados dos barbeiros.");
   }
 };
+
+export const updateBarberService = async (
+  id: number,
+  barber: Partial<barberModel>
+): Promise<barberModel | null> => {
+  try {
+    // Regra de negócio 1: Verificar se o ID é válido
+    if (!id || isNaN(id)) {
+      throw new Error("ID inválido fornecido");
+    }
+
+    // Regra de negócio 2: Garantir que pelo menos um campo seja atualizado
+    if (!barber || Object.keys(barber).length === 0) {
+      throw new Error("Nenhum dado para atualizar foi fornecido");
+    }
+
+    // Regra de negócio 3: Garantir que os campos enviados sejam válidos
+    const validFields = ["nome", "barbeariaId", "especialidade", "telefone", "fotoBarbeiro"];
+    const invalidFields = Object.keys(barber).filter(
+      (key) => !validFields.includes(key)
+    );
+
+    if (invalidFields.length > 0) {
+      throw new Error(`Campos inválidos fornecidos: ${invalidFields.join(", ")}`);
+    }
+
+    // Regra de negócio 4: Verificar se o barbeiro existe antes de atualizar
+    const existingBarber = await barberRepositories.findBarberById(id);
+    if (!existingBarber) {
+      throw new Error("Barbeiro não encontrado");
+    }
+
+    // Chamar o repositório para atualizar o barbeiro
+    const updatedBarber = await barberRepositories.updateBarber(id, barber);
+
+    // Verificar se a atualização foi bem-sucedida
+    if (!updatedBarber) {
+      throw new Error("Falha ao atualizar o barbeiro");
+    }
+
+    return updatedBarber;
+  } catch (err: any) {
+    console.error("Erro no serviço de atualizar barbeiro:", err.message);
+    throw new Error(err.message || "Erro no serviço de atualização");
+  }
+};

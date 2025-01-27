@@ -94,7 +94,7 @@ export const findBarbershopById = async (id: number): Promise<barbershopModel | 
       replacements: [id], // Substitui ? pela variável id
        
     });
-    console.log('Result', result);
+   
     // Verifica se a consulta retornou resultados
     if (!result || result.length === 0) {
       throw new Error('Barbearia não encontrada');

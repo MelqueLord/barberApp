@@ -2,6 +2,7 @@ import * as barberService from "../services/barber-service";
 import status from "http-status";
 import { Request, Response } from "express";
 
+
 export const postBarber = async (
   req: Request,
   res: Response
@@ -30,10 +31,7 @@ export const postBarber = async (
   }
 };
 
-export const getBarber = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const getBarber = async (req: Request, res: Response): Promise<void> => {
   try {
     // Chama a função do serviço para buscar
     const barbers = await barberService.getAllBarberService();
@@ -47,3 +45,39 @@ export const getBarber = async (
       .json({ message: "Falha ao processar Barbearias" });
   }
 };
+
+
+
+export const putBarber = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    // Extrai o ID e os dados do barbeiro do request
+    const { id } = req.params;
+    const barber = req.body;
+
+    // Chama o serviço para processar a atualização
+    const updatedBarber = await barberService.updateBarberService(Number(id), barber);
+
+    // Retorna a resposta com os dados atualizados
+    return res.status(status.OK).json(updatedBarber);
+  } catch (error: any) {
+    console.error("Erro no controller ao atualizar barbeiro:", error.message);
+
+    // Erros específicos de negócio
+    if (error.message === "ID inválido fornecido") {
+      return res.status(status.BAD_REQUEST).json({ message: error.message });
+    }
+    if (error.message === "Nenhum dado para atualizar foi fornecido") {
+      return res.status(status.BAD_REQUEST).json({ message: error.message });
+    }
+    if (error.message === "Campos inválidos fornecidos") {
+      return res.status(status.BAD_REQUEST).json({ message: error.message });
+    }
+    if (error.message === "Barbeiro não encontrado") {
+      return res.status(status.NOT_FOUND).json({ message: error.message });
+    }
+
+    // Erros genéricos do servidor
+    return res.status(status.INTERNAL_SERVER_ERROR).json({ message: "Erro ao atualizar barbeiro." });
+  }
+};
+

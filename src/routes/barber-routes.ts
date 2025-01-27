@@ -1,10 +1,11 @@
 import {Router} from "express";
-import * as postBarberController from "../controllers/barber-controller"
+import * as barberController from "../controllers/barber-controller"
 import upload from "../middlewares/upload-middleware";
 
 const router = Router();
 
-router.post("/" , upload.single("foto"), postBarberController.postBarber);
-router.get("/" , postBarberController.getBarber);
+router.post("/" , upload.single("foto"), barberController.postBarber);
+router.get("/" , barberController.getBarber);
+router.put("/:id", barberController.putBarber );
 
 export default router;
