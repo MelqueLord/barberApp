@@ -38,6 +38,30 @@ export const getAllBarberService = async (): Promise<barberModel[]> => {
   }
 };
 
+export const getBarberServiceById = async (id: number): Promise<barberModel | null> =>{
+try{
+     if(!id || id<= 0 || isNaN(id)){
+      throw new Error('ID inválido fornecido.');
+
+     }
+     
+     
+     const barberById = await barberRepositories.findBarberById(id);
+
+     // joguei null para o controller decidir como fazrer
+     if(!barberById){
+      return null;
+     }
+
+    return barberById;
+     
+}catch(err: any){
+ console.error('Erro no serviço de busca de barbearia pelo ID:', err);
+ throw new Error(err.message || 'Erro interno no servidor.');
+}
+
+}
+
 export const updateBarberService = async (
   id: number,
   barber: Partial<barberModel>

@@ -1,31 +1,36 @@
 import { Request, Response } from 'express';
 import status from "http-status"; // Biblioteca statuscode
 import * as BarbershopService from '../services/barbershop-service';
+import { barbershopModel } from '../models/barbershop-models';
 
 
 
-export const postBarbershop = async (req: Request, res: Response): Promise<Response> => {
+export const postBarbershop = async (req: Request, res: Response): Promise<void> => {
   try {
-    console.log('Recebendo dados da requisição:', req.body);
-    const barbershop = req.body;
+    
+    const barbershop : barbershopModel = req.body;
+
+    // Validação básica de dados (exemplo)
+    if (!barbershop.nome && !barbershop.telefone && !barbershop.endereco && !barbershop.diaAbertura &&
+      !barbershop.diaFechamento && barbershop.abertura && !barbershop.fechamento
+     ) {
+      res.status(status.BAD_REQUEST).json({
+        message: 'Dados obrigatorios não preenchidos',
+      });
+      return;
+    }
 
     // Chamando o serviço para criar a barbearia
     const result = await BarbershopService.createBarbershopService(barbershop);
-    console.log('Barbearia criada:', barbershop);
+  
     // Retornando resposta de sucesso com código 201 (Created)
-    return res.status(status.CREATED).json({
+    res.status(status.CREATED).json({
       message: 'Barbearia criada com sucesso!',
       data: result,
     });
   } catch (err: any) {
     console.error('Erro no controller:', err);
-
-    // Retornando erro com mensagem e código 400 (ou 500 para erros inesperados)
-    const statusCode = err.message.includes('Campos obrigatórios') 
-      ? status.BAD_REQUEST 
-      : status.INTERNAL_SERVER_ERROR;
-
-    return res.status(statusCode).json({
+    res.status(status.INTERNAL_SERVER_ERROR).json({
       message: err.message || 'Erro interno no servidor.',
     });
   }
@@ -54,7 +59,7 @@ export const getBarbershops = async (req: Request, res: Response): Promise<void>
 export const getBarbershopById = async (req: Request, res: Response): Promise<void> =>{
  try{
      const id = Number(req.params.id);
-     console.log('ID:', id );
+    
 
       if(isNaN(id) || id<=0){
         res.status(status.BAD_REQUEST).json({message:'Id informado inválido'})
