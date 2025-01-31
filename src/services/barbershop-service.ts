@@ -140,6 +140,8 @@ export const updateBarbershopService = async (id: number, barbershop: Partial<ba
 };
 
 export const deleteBarbershopService = async (id: number): Promise<string> => {
+ try{
+ 
   // Validação inicial: verifica se o ID foi fornecido
   if (!id) {
     throw new Error("O ID da barbearia é obrigatório.");
@@ -155,4 +157,9 @@ export const deleteBarbershopService = async (id: number): Promise<string> => {
 
   // Retorna a mensagem de sucesso
   return result;
+}catch(err){
+console.error('Erro ao deletar barbearia' , err);
+throw new Error('Erro ao excluir barbearia');
+}
+
 };

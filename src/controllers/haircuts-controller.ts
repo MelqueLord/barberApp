@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
-import { createHaircutService } from "../services/haircut-service";
+import * as haircutService from "../services/haircut-service";
 import status from "http-status"; // Usando toda a biblioteca http-status
+import {ERROR_MESSAGES} from "../utils/ErrorsControllers";
 
 export const postHaircut = async (req: Request, res: Response): Promise<Response> => {
   try {
@@ -19,7 +20,7 @@ export const postHaircut = async (req: Request, res: Response): Promise<Response
 
 
     // Chama o serviço para criar o corte de cabelo
-    const result = await createHaircutService(haircut, fotoBuffer);
+    const result = await haircutService.createHaircutService(haircut, fotoBuffer);
 
     return res.status(status.OK).json({
       message: "Corte de cabelo criado com sucesso!",
@@ -32,3 +33,16 @@ export const postHaircut = async (req: Request, res: Response): Promise<Response
     });
   }
 };
+
+
+export const getHaircut = async (req: Request, res: Response): Promise<void> =>{
+try{
+const haircuts = await haircutService.getAllHaircutService();
+res.status(status.OK).json(haircuts);
+
+}catch(err){
+ console.error('Erro no controller de cortes de cabelo', err);
+ res.status(status.INTERNAL_SERVER_ERROR).json({message: ERROR_MESSAGES.INTERNAL_ERROR});
+}
+
+} 

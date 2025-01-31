@@ -22,3 +22,26 @@ export const inserthaircut = async (haircut: haircutModel): Promise<{ id: number
   }
 
 };
+
+
+export const findAllHaircut = async (): Promise<haircutModel[]> => {
+try{
+  const [results] : any = await sequelize.query(
+    ` SELECT id, 
+             barbearia_id, 
+             nome, 
+             descricao, 
+             foto, 
+             preco, 
+             duracao 
+      FROM cortes_produtos`
+  );
+
+  return results as haircutModel[];
+
+}catch(err){
+console.error('Erro na camada repositories:' , err);
+throw new Error("Falha ao buscar os cortes no banco de dados.");
+}
+
+}

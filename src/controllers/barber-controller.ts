@@ -1,7 +1,7 @@
 import * as barberService from "../services/barber-service";
 import status from "http-status";
 import { Request, Response } from "express";
-import { stat } from "fs";
+import {validarId} from "../utils/validateId";
 
 
 export const postBarber = async (
@@ -52,7 +52,7 @@ export const getBarberById = async (req: Request, res: Response): Promise<void> 
  try{
   const id = Number(req.params.id);
    
-   if(isNaN(id) || id<=0){
+   if(!validarId(id)){
     res.status(status.BAD_REQUEST).json({message:'Id Fornecido Invalido'});
     return;  // para a função finalizar aqui
    }
@@ -106,3 +106,23 @@ export const putBarber = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+export const deleteBarber = async (req: Request, res:Response): Promise<void> => {
+try{
+  const id = validarId(Number(req.params.id));
+
+  const result = await barberService.deleteBarberService(id);
+
+  if(result){
+    res.status(status.OK).json({message: result});
+  }else{
+    res.status(status.NOT_FOUND).json({message:'Barbeiro nao encontrado'});
+  }
+  
+    
+
+}catch(err){
+  console.error('Erro ao excluir barbeiro no controller:' , err);
+  res.status(status.INTERNAL_SERVER_ERROR).json({message:'Erro ao tentar excluir Barbeiro'})
+}
+
+}

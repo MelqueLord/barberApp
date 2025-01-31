@@ -1,5 +1,6 @@
 import { barberModel } from "../models/barber-models";
 import * as barberRepositories from "../repositories/barber-repositories";
+import {validarId} from "../utils/validateId";
 
 export const createBarberService = async (
   barber: barberModel,
@@ -40,13 +41,16 @@ export const getAllBarberService = async (): Promise<barberModel[]> => {
 
 export const getBarberServiceById = async (id: number): Promise<barberModel | null> =>{
 try{
-     if(!id || id<= 0 || isNaN(id)){
-      throw new Error('ID inválido fornecido.');
+     
+   const idBarber = validarId(id);
+  
+  //if(!id || id<= 0 || isNaN(id)){
+      //throw new Error('ID inválido fornecido.');'
 
-     }
+     //}
      
      
-     const barberById = await barberRepositories.findBarberById(id);
+     const barberById = await barberRepositories.findBarberById(idBarber);
 
      // joguei null para o controller decidir como fazrer
      if(!barberById){
@@ -67,10 +71,8 @@ export const updateBarberService = async (
   barber: Partial<barberModel>
 ): Promise<barberModel | null> => {
   try {
-    // Regra de negócio 1: Verificar se o ID é válido
-    if (!id || isNaN(id)) {
-      throw new Error("ID inválido fornecido");
-    }
+    
+    const idBarber = validarId(id);
 
     // Regra de negócio 2: Garantir que pelo menos um campo seja atualizado
     if (!barber || Object.keys(barber).length === 0) {
@@ -88,13 +90,13 @@ export const updateBarberService = async (
     }
 
     // Regra de negócio 4: Verificar se o barbeiro existe antes de atualizar
-    const existingBarber = await barberRepositories.findBarberById(id);
+    const existingBarber = await barberRepositories.findBarberById(idBarber);
     if (!existingBarber) {
       throw new Error("Barbeiro não encontrado");
     }
 
     // Chamar o repositório para atualizar o barbeiro
-    const updatedBarber = await barberRepositories.updateBarber(id, barber);
+    const updatedBarber = await barberRepositories.updateBarber(idBarber, barber);
 
     // Verificar se a atualização foi bem-sucedida
     if (!updatedBarber) {
@@ -107,3 +109,17 @@ export const updateBarberService = async (
     throw new Error(err.message || "Erro no serviço de atualização");
   }
 };
+
+export const deleteBarberService = async (id: number): Promise<string>=> {
+try{
+const idBarber = validarId(id);
+const result = await barberRepositories.deleteBarber(idBarber);
+
+return result;
+
+}catch(err){
+console.error('Nao foi possivel excluir:', err );
+throw new Error('Erro ao deletar barbeiro');
+}
+
+}

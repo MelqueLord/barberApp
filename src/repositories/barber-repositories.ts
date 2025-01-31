@@ -1,6 +1,7 @@
 import { barberModel } from "../models/barber-models";
 import sequelize from "../config/db";
 
+
 export const insertBarber = async (
   barber: barberModel
 ): Promise<{ id: number }> => {
@@ -87,9 +88,7 @@ export const updateBarber = async (
   barber: Partial<barberModel>
 ): Promise<barberModel | null> => {
   try {
-    if (!id) {
-      throw new Error("ID inválido fornecido");
-    }
+   
     if (Object.keys(barber).length === 0) {
       throw new Error("Nenhum campo para atualizar foi fornecido");
     }
@@ -119,3 +118,32 @@ export const updateBarber = async (
     throw new Error("Falha ao atualizar barbeiro.");
   }
 };
+
+
+export const deleteBarber = async (id: number): Promise<string> => {
+try{
+
+  
+const query = `
+      DELETE FROM Barbeiros
+      WHERE id = ?
+    `;
+
+    const[result] : any = await sequelize.query(query, {
+      replacements: [id],
+    });
+
+    if(result.affectedRows===0){
+   throw new Error("Nenhuma barbearia encontrada com o ID fornecido.");
+
+    }
+
+    return "Barbearia deletada com sucesso!";
+
+}catch(err){
+console.error('Erro ao deletar Barbearia:' , err);
+throw new Error('Falha ao deletar a barbearia.');
+
+}
+
+}

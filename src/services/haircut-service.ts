@@ -1,4 +1,4 @@
-import { inserthaircut } from "../repositories/haircuts-repositories";
+import * as haircutRepositories from "../repositories/haircuts-repositories";
 import { haircutModel } from "../models/haircuts-models";
 
 export const createHaircutService = async (
@@ -21,7 +21,7 @@ export const createHaircutService = async (
     
     
     // Chamando o repositório para inserir os dados
-    const result = await inserthaircut(haircutWithFoto);
+    const result = await haircutRepositories.inserthaircut(haircutWithFoto);
 
     //retorna o id gerado
     return result;
@@ -30,3 +30,17 @@ export const createHaircutService = async (
     throw new Error("Falha ao criar barbearia.");
   }
 };
+
+export const getAllHaircutService = async (): Promise<haircutModel[]> => {
+try{
+ const haircuts = await haircutRepositories.findAllHaircut();
+
+ 
+ return haircuts; 
+
+}catch(err){
+console.error('Erro na camada Service ao consultar cortes:', err);
+throw new Error('Falha ao processar os dados dos cortes');
+}
+
+}
