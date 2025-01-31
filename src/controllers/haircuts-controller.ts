@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import * as haircutService from "../services/haircut-service";
 import status from "http-status"; // Usando toda a biblioteca http-status
 import {ERROR_MESSAGES} from "../utils/ErrorsControllers";
+import {validarId} from "../utils/validateId";
 
 export const postHaircut = async (req: Request, res: Response): Promise<Response> => {
   try {
@@ -46,3 +47,29 @@ res.status(status.OK).json(haircuts);
 }
 
 } 
+
+export const getHaircutById = async (req: Request, res:Response): Promise<void> => {
+try{
+  const id = Number(req.params.id);
+   
+  if(!validarId(id)){
+    res.status(status.BAD_REQUEST).json({message:'ID Fornecido invalido'});
+    return;
+  }
+  
+  const haircut = await haircutService.getHaircutServiceById(id);
+  
+  if(!haircut){
+    res.status(status.NOT_FOUND).json({message:'Corte não encontrado'});
+    return;
+   }
+
+   res.status(status.OK).json(haircut);
+
+  }catch(err){
+   console.error('Erro no controller do corte' , err);
+   res.status(status.INTERNAL_SERVER_ERROR).json({message:'Erro Interno do servidor'});
+
+  }
+
+}

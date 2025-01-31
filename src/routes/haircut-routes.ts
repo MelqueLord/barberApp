@@ -6,6 +6,7 @@ const router = Router();
 
 router.post("/", upload.single("foto"), haircutController.postHaircut);
 router.get("/", haircutController.getHaircut );
+router.get("/:id", haircutController.getHaircutById);
 
 export default router;
 

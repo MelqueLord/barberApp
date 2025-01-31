@@ -1,5 +1,7 @@
 import * as haircutRepositories from "../repositories/haircuts-repositories";
 import { haircutModel } from "../models/haircuts-models";
+import { getHaircut } from "../controllers/haircuts-controller";
+import { validarId } from "../utils/validateId";
 
 export const createHaircutService = async (
   haircut: haircutModel, fotoBuffer: Buffer
@@ -26,8 +28,8 @@ export const createHaircutService = async (
     //retorna o id gerado
     return result;
   } catch (err) {
-    console.error("Erro ao criar barbearia:", err);
-    throw new Error("Falha ao criar barbearia.");
+    console.error("Erro na service de corte:", err);
+    throw new Error("Falha ao criar corte de cabelo.");
   }
 };
 
@@ -44,3 +46,19 @@ throw new Error('Falha ao processar os dados dos cortes');
 }
 
 }
+
+export const getHaircutServiceById = async (id:number): Promise<haircutModel | null> => {
+  try{
+  const idHaircut = validarId(id);
+
+  const haircut = await haircutRepositories.findHaircutById(idHaircut);
+   if(!haircut)
+    throw new Error('Corte não encontrado.');
+    
+   return haircut;
+  }catch(err){
+   console.error('Erro no service de corte', err);
+   throw new Error("Erro ao tentar encontrar corte");
+  }
+
+} 
