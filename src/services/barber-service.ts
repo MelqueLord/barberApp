@@ -1,5 +1,6 @@
 import { barberModel } from "../models/barber-models";
 import * as barberRepositories from "../repositories/barber-repositories";
+import * as errorsUtils from "../utils/errorsUtils";
 import {validarId} from "../utils/validateId";
 
 export const createBarberService = async (
@@ -10,7 +11,7 @@ export const createBarberService = async (
 
   try {
     if (!barbeariaId || !nome || !especialidade || !telefone || !fotoBuffer) {
-      throw new Error("Campos obrigatórios não foram preenchidos.");
+      throw errorsUtils.badRequestError("Campos obrigatórios não foram preenchidos.");
     }
 
     // Crie o objeto completo, incluindo a foto no formato buffer
@@ -22,11 +23,13 @@ export const createBarberService = async (
     const result = await barberRepositories.insertBarber(barbertWithFoto);
 
     return result;
-  } catch (err) {
-    console.error("Erro ao barbeiro:", err);
-    throw new Error("Falha ao criar barbeiro.");
+  } catch (err: any) {
+    if(err.type==="bad_request")
+    console.error("Erro ao inserir barbeiro:", err);
+    throw errorsUtils.databaseError("Falha ao acessar banco de dados.");
   }
 };
+
 
 export const getAllBarberService = async (): Promise<barberModel[]> => {
   try {

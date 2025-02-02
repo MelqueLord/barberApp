@@ -2,6 +2,7 @@ import * as barberService from "../services/barber-service";
 import status from "http-status";
 import { Request, Response } from "express";
 import {validarId} from "../utils/validateId";
+import * as errorsUtils from "../utils/errorsUtils";
 
 
 export const postBarber = async (
@@ -13,25 +14,29 @@ export const postBarber = async (
     const barber = req.body;
 
     if (!file) {
-      res.status(400).json({ message: "Foto é obrigatória" });
-      return;
-    }
+      throw errorsUtils.badRequestError("Foto é obrigatória.");
+      }
 
     const fotoBuffer = file.buffer;
 
-    const result = await barberService.createBarberService(barber, fotoBuffer);
+    const newBarber = await barberService.createBarberService(barber, fotoBuffer);
 
-    res.status(status.OK).json({
-      message: "Barbeiro criado com sucesso!",
-      data: result,
-    });
-  } catch (err: any) {
-    console.error(err);
-    res.status(status.INTERNAL_SERVER_ERROR).json({
-      message: err.message || "Erro ao criar barbeiro.",
-    });
+    res.status(status.OK).json(newBarber);
+  } catch (err:any) {
+    if (err.type === "bad_request") {
+       res.status(400).json({ message: err.message });
+    }
+
+   
+    if (err.type === "database_error") {
+       res.status(500).json({ message: err.message });
+    }
+
+    console.error("Erro inesperado:", err);
+     res.status(500).json({ message: "Erro interno do servidor." });
   }
 };
+
 
 export const getBarber = async (req: Request, res: Response): Promise<void> => {
   try {

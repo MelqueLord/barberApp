@@ -112,5 +112,27 @@ throw new Error('Erro ao atualizar corte de cabelo');
 
 }
 
+}
+
+export const deleteHaircut = async (id:number): Promise<string> =>{
+  try{
+    const query = `
+      DELETE FROM cortes_produtos
+      WHERE id = ?
+    `;
+  
+    const[result]: any = await sequelize.query(query, { replacements:[id]});
+    
+    if(result.affectedRows===0){
+      throw new Error("Nenhuma barbearia encontrada com o ID fornecido.");
+   
+       }
+
+       return "Corte de cabelo deletado com sucesso!";
+  }catch(err){
+    console.error('Erro ao deletar Barbearia:' , err);
+    throw new Error('Falha ao deletar a barbearia.');
+
+  }
 
 }

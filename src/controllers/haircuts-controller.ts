@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import * as haircutService from "../services/haircut-service";
 import status from "http-status"; // Usando toda a biblioteca http-status
-import {ERROR_MESSAGES} from "../utils/ErrorsControllers";
 import {validarId} from "../utils/validateId";
 import { updateHaircut } from "../repositories/haircuts-repositories";
 

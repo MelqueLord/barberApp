@@ -1,7 +1,6 @@
 import { barberModel } from "../models/barber-models";
 import sequelize from "../config/db";
 
-
 export const insertBarber = async (
   barber: barberModel
 ): Promise<{ id: number }> => {
@@ -20,11 +19,16 @@ export const insertBarber = async (
         ],
       }
     );
+    // Verifica se a operação retornou um ID válido
+    if (!result || !result[0]?.id) {
+      throw new Error("Falha ao inserir o barbeiro no banco de dados.");
+    }
 
     return { id: result[0]?.id };
   } catch (err) {
-    console.error("Erro ao inserir a barbeiro:", err);
-    throw new Error("Falha ao inserir a barbeiro no banco de dados.");
+    // Lança o erro para ser tratado pela camada superior (service)
+    console.error("Erro ao inserir barbeiro:", err);
+    throw err; // Repassa o erro para a camada service
   }
 };
 
@@ -79,7 +83,7 @@ export const findBarberById = async (
     return result[0];
   } catch (err) {
     console.error("Erro ao buscar barbeiro pelo ID:", err);
-    throw new Error("Falha ao buscar barbeiro pelo ID");
+    throw new Error("Falha ao buscar barbeiro");
   }
 };
 
@@ -88,7 +92,6 @@ export const updateBarber = async (
   barber: Partial<barberModel>
 ): Promise<barberModel | null> => {
   try {
-   
     if (Object.keys(barber).length === 0) {
       throw new Error("Nenhum campo para atualizar foi fornecido");
     }
@@ -119,31 +122,24 @@ export const updateBarber = async (
   }
 };
 
-
 export const deleteBarber = async (id: number): Promise<string> => {
-try{
-
-  
-const query = `
+  try {
+    const query = `
       DELETE FROM Barbeiros
       WHERE id = ?
     `;
 
-    const[result] : any = await sequelize.query(query, {
+    const [result]: any = await sequelize.query(query, {
       replacements: [id],
     });
 
-    if(result.affectedRows===0){
-   throw new Error("Nenhuma barbearia encontrada com o ID fornecido.");
-
+    if (result.affectedRows === 0) {
+      throw new Error("Nenhuma barbearia encontrada com o ID fornecido.");
     }
 
     return "Barbearia deletada com sucesso!";
-
-}catch(err){
-console.error('Erro ao deletar Barbearia:' , err);
-throw new Error('Falha ao deletar a barbearia.');
-
-}
-
-}
+  } catch (err) {
+    console.error("Erro ao deletar Barbearia:", err);
+    throw new Error("Falha ao deletar a barbearia.");
+  }
+};
