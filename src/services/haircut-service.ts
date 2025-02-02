@@ -62,3 +62,44 @@ export const getHaircutServiceById = async (id:number): Promise<haircutModel | n
   }
 
 } 
+
+export const updateHaircutService = async (id: number, haircut: Partial<haircutModel>): Promise<haircutModel | null> =>{
+try{
+
+  const idHaircut = validarId(id);
+ 
+  // Regra de negócio 2: Garantir que pelo menos um campo seja atualizado
+  if(!haircut || Object.keys.length===0){
+   throw new Error('Nenhum dado para atualizar foi fornecido');
+ }
+ // Regra de negócio 3: Garantir que os campos enviados sejam válidos
+ const validFields = ["barbeariaId", "nome", "descricao", "preco", "duracao", "foto"];
+ const invalidFields = Object.keys(haircut).filter(
+  (key) => !validFields.includes(key)
+);
+
+if (invalidFields.length > 0) {
+  throw new Error(`Campos inválidos fornecidos: ${invalidFields.join(", ")}`);
+}
+
+ // Regra de negócio 4: Verificar se o barbeiro existe antes de atualizar
+    const existingHaircut = await haircutRepositories.findHaircutById(idHaircut);
+    if (!existingHaircut) {
+      throw new Error("Corte não encontrado");
+    }
+
+    // Chamar o repositório para atualizar o barbeiro
+    const updateHaircut = haircutRepositories.updateHaircut(idHaircut, haircut)
+  
+// Verificar se a atualização foi bem-sucedida
+ if(!updateHaircut){
+throw new Error('Falha ao atualizar o corte');
+ }
+ return updateHaircut;
+
+}catch(err: any){
+  console.error("Erro no serviço de atualizar Corte:", err.message);
+  throw new Error("Erro ao atualizar corte");
+}
+
+}

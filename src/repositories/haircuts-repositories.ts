@@ -77,3 +77,40 @@ export const findHaircutById = async(id: number): Promise<haircutModel | null> =
   }
 
 }
+
+export const updateHaircut = async (id: number, haircut: Partial<haircutModel>): Promise<haircutModel | null> =>{
+try{
+   // Verifica se há campos para atualizar
+   if (Object.keys(haircut).length === 0) {
+    throw new Error("Nenhum campo válido para atualização foi fornecido.");
+  }
+   
+  const fields = Object.keys(haircut)
+      .map((key) => `${key} = ?`)
+      .join(", ");
+    const values = Object.values(haircut);
+
+    const [result]: any = await sequelize.query(
+      `UPDATE cortes_produtos SET ${fields} WHERE id = ?`,
+      {
+        replacements: [...values, id],
+      }
+    );
+
+    // Verifique se a atualização afetou alguma linha
+    if (result.affectedRows === 0) {
+      throw new Error("Nenhum barbeiro encontrado para atualizar");
+    }
+    // Retorne o barbeiro atualizado
+        const updatedHaircut = await findHaircutById(id);
+        return updatedHaircut;
+    
+
+}catch(err){
+console.error('Erro no Repositories de Haircuts' ,err);
+throw new Error('Erro ao atualizar corte de cabelo');
+
+}
+
+
+}

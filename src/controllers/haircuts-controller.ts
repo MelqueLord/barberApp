@@ -3,6 +3,7 @@ import * as haircutService from "../services/haircut-service";
 import status from "http-status"; // Usando toda a biblioteca http-status
 import {ERROR_MESSAGES} from "../utils/ErrorsControllers";
 import {validarId} from "../utils/validateId";
+import { updateHaircut } from "../repositories/haircuts-repositories";
 
 export const postHaircut = async (req: Request, res: Response): Promise<Response> => {
   try {
@@ -73,3 +74,42 @@ try{
   }
 
 }
+
+export const putHaircut = async (req: Request, res:Response): Promise<void> =>{
+try{
+
+
+ const id = validarId(Number(req.params.id));
+ const haircut = req.body;
+
+ if(!haircut || Object.keys(haircut).length===0){
+  throw new Error('Nenhum dado para atualizar foi fornecido');
+}
+
+ const updateHaircut = await haircutService.updateHaircutService(id, haircut);
+ res.status(status.OK).json(updateHaircut);
+
+}catch(err: any){
+  console.error("Erro no controller ao atualizar barbeiro:", err.message);
+
+  // Erros específicos de negócio
+  if (err.message === "ID inválido fornecido") {
+     res.status(status.BAD_REQUEST).json({ message: err.message });
+  }
+  if (err.message === "Nenhum dado para atualizar foi fornecido") {
+    res.status(status.BAD_REQUEST).json({ message: err.message });
+  }
+  if (err.message === "Campos inválidos fornecidos") {
+    res.status(status.BAD_REQUEST).json({ message: err.message });
+  }
+  if (err.message === "Corte não encontrado") {
+     res.status(status.NOT_FOUND).json({ message: err.message });
+  }
+
+ // Erros genéricos do servidor
+ res.status(status.INTERNAL_SERVER_ERROR).json({ message: "Erro ao atualizar Corte." });
+}
+
+};
+
+
