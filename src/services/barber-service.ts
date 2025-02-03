@@ -1,7 +1,7 @@
 import { barberModel } from "../models/barber-models";
 import * as barberRepositories from "../repositories/barber-repositories";
 import * as errorsUtils from "../utils/errorsUtils";
-import {validarId} from "../utils/validateId";
+import { validarId } from "../utils/validateId";
 
 export const createBarberService = async (
   barber: barberModel,
@@ -11,7 +11,9 @@ export const createBarberService = async (
 
   try {
     if (!barbeariaId || !nome || !especialidade || !telefone || !fotoBuffer) {
-      throw errorsUtils.badRequestError("Campos obrigatórios não foram preenchidos.");
+      throw errorsUtils.badRequestError(
+        "Campos obrigatórios não foram preenchidos."
+      );
     }
 
     // Crie o objeto completo, incluindo a foto no formato buffer
@@ -24,12 +26,11 @@ export const createBarberService = async (
 
     return result;
   } catch (err: any) {
-    if(err.type==="bad_request")
-    console.error("Erro ao inserir barbeiro:", err);
+    if (err.type === "bad_request")
+      console.error("Erro ao inserir barbeiro:", err);
     throw errorsUtils.databaseError("Falha ao acessar banco de dados.");
   }
 };
-
 
 export const getAllBarberService = async (): Promise<barberModel[]> => {
   try {
@@ -38,91 +39,104 @@ export const getAllBarberService = async (): Promise<barberModel[]> => {
     return barbers;
   } catch (err) {
     console.error("Erro ao buscar Barbearias:", err);
-    throw new Error("Falha ao processar os dados dos barbeiros.");
+    throw errorsUtils.databaseError(
+      "Falha ao processar os dados dos barbeiros."
+    );
   }
 };
 
-export const getBarberServiceById = async (id: number): Promise<barberModel | null> =>{
-try{
-     
-   const idBarber = validarId(id);
-  
-  //if(!id || id<= 0 || isNaN(id)){
-      //throw new Error('ID inválido fornecido.');'
+export const getBarberServiceById = async (
+  id: number
+): Promise<barberModel | null> => {
+  try {
+    const idBarber = validarId(id); // Valida o ID
+    const barberById = await barberRepositories.findBarberById(idBarber);
 
-     //}
-     
-     
-     const barberById = await barberRepositories.findBarberById(idBarber);
-
-     // joguei null para o controller decidir como fazrer
-     if(!barberById){
-      return null;
-     }
+    // Se o barbeiro não for encontrado, lança um erro
+    if (!barberById) {
+      throw errorsUtils.notFoundError("Barbeiro não encontrado.");
+    }
 
     return barberById;
-     
-}catch(err: any){
- console.error('Erro no serviço de busca de barbearia pelo ID:', err);
- throw new Error(err.message || 'Erro interno no servidor.');
-}
-
-}
+  } catch (err: any) {
+    if (err.type === "not_found") {
+      throw err; // Repassa erros de "não encontrado"
+    }
+    console.error("Erro no serviço de busca de barbeiro pelo ID:", err);
+    throw errorsUtils.databaseError("Falha ao acessar o banco de dados.");
+  }
+};
 
 export const updateBarberService = async (
   id: number,
   barber: Partial<barberModel>
 ): Promise<barberModel | null> => {
   try {
-    
     const idBarber = validarId(id);
 
     // Regra de negócio 2: Garantir que pelo menos um campo seja atualizado
     if (!barber || Object.keys(barber).length === 0) {
-      throw new Error("Nenhum dado para atualizar foi fornecido");
+      throw errorsUtils.badRequestError(
+        "Nenhum dado para atualizar foi fornecido."
+      );
     }
 
     // Regra de negócio 3: Garantir que os campos enviados sejam válidos
-    const validFields = ["nome", "barbeariaId", "especialidade", "telefone", "fotoBarbeiro"];
+    const validFields = [
+      "nome",
+      "barbeariaId",
+      "especialidade",
+      "telefone",
+      "fotoBarbeiro",
+    ];
     const invalidFields = Object.keys(barber).filter(
       (key) => !validFields.includes(key)
     );
 
     if (invalidFields.length > 0) {
-      throw new Error(`Campos inválidos fornecidos: ${invalidFields.join(", ")}`);
+      throw errorsUtils.badRequestError(
+        `Campos inválidos fornecidos: ${invalidFields.join(", ")}`
+      );
     }
 
     // Regra de negócio 4: Verificar se o barbeiro existe antes de atualizar
     const existingBarber = await barberRepositories.findBarberById(idBarber);
     if (!existingBarber) {
-      throw new Error("Barbeiro não encontrado");
+      throw errorsUtils.notFoundError("Barbeiro não encontrado.");
     }
 
     // Chamar o repositório para atualizar o barbeiro
-    const updatedBarber = await barberRepositories.updateBarber(idBarber, barber);
+    const updatedBarber = await barberRepositories.updateBarber(
+      idBarber,
+      barber
+    );
 
     // Verificar se a atualização foi bem-sucedida
     if (!updatedBarber) {
-      throw new Error("Falha ao atualizar o barbeiro");
+      throw errorsUtils.databaseError("Falha ao atualizar o barbeiro.");
     }
 
     return updatedBarber;
   } catch (err: any) {
+    if (err.type === "bad_request" || err.type === "not_found") {
+      throw err; // Repassa erros de validação ou "não encontrado"
+    }
     console.error("Erro no serviço de atualizar barbeiro:", err.message);
-    throw new Error(err.message || "Erro no serviço de atualização");
+    throw errorsUtils.databaseError("Falha ao acessar o banco de dados.");
   }
 };
 
-export const deleteBarberService = async (id: number): Promise<string>=> {
-try{
-const idBarber = validarId(id);
-const result = await barberRepositories.deleteBarber(idBarber);
+export const deleteBarberService = async (id: number): Promise<string> => {
+  try {
+    const idBarber = validarId(id);
+    const result = await barberRepositories.deleteBarber(idBarber);
 
-return result;
-
-}catch(err){
-console.error('Nao foi possivel excluir:', err );
-throw new Error('Erro ao deletar barbeiro');
-}
-
-}
+    return result;
+  } catch (err: any) {
+    if (err.type === "not_found") {
+      throw err; // Repassa erros de "não encontrado"
+    }
+    console.error("Não foi possível excluir o barbeiro:", err);
+    throw errorsUtils.databaseError("Falha ao acessar o banco de dados.");
+  }
+};

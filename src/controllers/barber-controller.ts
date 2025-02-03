@@ -1,9 +1,8 @@
 import * as barberService from "../services/barber-service";
 import status from "http-status";
 import { Request, Response } from "express";
-import {validarId} from "../utils/validateId";
+import { validarId } from "../utils/validateId";
 import * as errorsUtils from "../utils/errorsUtils";
-
 
 export const postBarber = async (
   req: Request,
@@ -13,121 +12,160 @@ export const postBarber = async (
     const file = req.file;
     const barber = req.body;
 
+    // Valida se a foto foi enviada
     if (!file) {
       throw errorsUtils.badRequestError("Foto é obrigatória.");
-      }
+    }
 
     const fotoBuffer = file.buffer;
 
-    const newBarber = await barberService.createBarberService(barber, fotoBuffer);
+    // Chama a service para criar o barbeiro
+    const newBarber = await barberService.createBarberService(
+      barber,
+      fotoBuffer
+    );
 
-    res.status(status.OK).json(newBarber);
-  } catch (err:any) {
+    // Retorna a resposta com sucesso
+    res.status(status.CREATED).json(newBarber);
+  } catch (err: any) {
+    // Trata erros específicos
     if (err.type === "bad_request") {
-       res.status(400).json({ message: err.message });
+      res.status(status.BAD_REQUEST).json({ message: err.message });
     }
-
-   
     if (err.type === "database_error") {
-       res.status(500).json({ message: err.message });
+      res.status(status.INTERNAL_SERVER_ERROR).json({ message: err.message });
     }
 
+    // Erro inesperado
     console.error("Erro inesperado:", err);
-     res.status(500).json({ message: "Erro interno do servidor." });
+    res
+      .status(status.INTERNAL_SERVER_ERROR)
+      .json({ message: "Erro interno do servidor." });
   }
 };
 
-
 export const getBarber = async (req: Request, res: Response): Promise<void> => {
   try {
-    // Chama a função do serviço para buscar
+    // Chama a service para buscar todos os barbeiros
     const barbers = await barberService.getAllBarberService();
 
     // Retorna a resposta com sucesso
     res.status(status.OK).json(barbers);
   } catch (err) {
-    console.error("Erro ao buscar barbearias", err);
+    console.error("Erro ao buscar barbeiros:", err);
     res
       .status(status.INTERNAL_SERVER_ERROR)
-      .json({ message: "Falha ao processar Barbearias" });
+      .json({ message: "Falha ao processar os dados dos barbeiros." });
   }
 };
 
-export const getBarberById = async (req: Request, res: Response): Promise<void> => {
- try{
-  const id = Number(req.params.id);
-   
-   if(!validarId(id)){
-    res.status(status.BAD_REQUEST).json({message:'Id Fornecido Invalido'});
-    return;  // para a função finalizar aqui
-   }
-  const barber = await barberService.getBarberServiceById(id);
+export const getBarberById = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const id = Number(req.params.id);
 
-   if(!barber){
-    res.status(status.NOT_FOUND).json({message:'Barbeiro não encontrado'});
-    return;
-   }
+    // Valida o ID
+    if (!validarId(id)) {
+      throw errorsUtils.badRequestError("ID fornecido é inválido.");
+    }
 
-   res.status(status.OK).json(barber);
- }catch(err){
- console.error('Erro ao buscar barbeiro:', err);  
- res.status(status.INTERNAL_SERVER_ERROR).json({message:'Erro interno do servidor'});
+    // Chama a service para buscar o barbeiro pelo ID
+    const barber = await barberService.getBarberServiceById(id);
 
- }
+    // Se o barbeiro não for encontrado
+    if (!barber) {
+      throw errorsUtils.notFoundError("Barbeiro não encontrado.");
+    }
 
-}
+    // Retorna a resposta com sucesso
+    res.status(status.OK).json(barber);
+  } catch (err: any) {
+    // Trata erros específicos
+    if (err.type === "bad_request") {
+      res.status(status.BAD_REQUEST).json({ message: err.message });
+    }
+    if (err.type === "not_found") {
+      res.status(status.NOT_FOUND).json({ message: err.message });
+    }
 
+    // Erro inesperado
+    console.error("Erro ao buscar barbeiro:", err);
+    res
+      .status(status.INTERNAL_SERVER_ERROR)
+      .json({ message: "Erro interno do servidor." });
+  }
+};
 
 export const putBarber = async (req: Request, res: Response): Promise<void> => {
   try {
-    // Extrai o ID e os dados do barbeiro do request
     const { id } = req.params;
     const barber = req.body;
 
-    // Chama o serviço para processar a atualização
-    const updatedBarber = await barberService.updateBarberService(Number(id), barber);
+    // Valida o ID
+    if (!validarId(Number(id))) {
+      throw errorsUtils.badRequestError("ID fornecido é inválido.");
+    }
 
-    // Retorna a resposta com os dados atualizados
+    // Chama a service para atualizar o barbeiro
+    const updatedBarber = await barberService.updateBarberService(
+      Number(id),
+      barber
+    );
+
+    // Retorna a resposta com sucesso
     res.status(status.OK).json(updatedBarber);
-  } catch (error: any) {
-    console.error("Erro no controller ao atualizar barbeiro:", error.message);
-
-    // Erros específicos de negócio
-    if (error.message === "ID inválido fornecido") {
-       res.status(status.BAD_REQUEST).json({ message: error.message });
+  } catch (err: any) {
+    // Trata erros específicos
+    if (err.type === "bad_request") {
+      res.status(status.BAD_REQUEST).json({ message: err.message });
     }
-    if (error.message === "Nenhum dado para atualizar foi fornecido") {
-      res.status(status.BAD_REQUEST).json({ message: error.message });
+    if (err.type === "not_found") {
+      res.status(status.NOT_FOUND).json({ message: err.message });
     }
-    if (error.message === "Campos inválidos fornecidos") {
-      res.status(status.BAD_REQUEST).json({ message: error.message });
-    }
-    if (error.message === "Barbeiro não encontrado") {
-       res.status(status.NOT_FOUND).json({ message: error.message });
+    if (err.type === "database_error") {
+      res.status(status.INTERNAL_SERVER_ERROR).json({ message: err.message });
     }
 
-    // Erros genéricos do servidor
-    res.status(status.INTERNAL_SERVER_ERROR).json({ message: "Erro ao atualizar barbeiro." });
+    // Erro inesperado
+    console.error("Erro ao atualizar barbeiro:", err);
+    res
+      .status(status.INTERNAL_SERVER_ERROR)
+      .json({ message: "Erro interno do servidor." });
   }
 };
 
-export const deleteBarber = async (req: Request, res:Response): Promise<void> => {
-try{
-  const id = validarId(Number(req.params.id));
+export const deleteBarber = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const id = Number(req.params.id);
 
-  const result = await barberService.deleteBarberService(id);
+    // Valida o ID
+    if (!validarId(id)) {
+      throw errorsUtils.badRequestError("ID fornecido é inválido.");
+    }
 
-  if(result){
-    res.status(status.OK).json({message: result});
-  }else{
-    res.status(status.NOT_FOUND).json({message:'Barbeiro nao encontrado'});
+    // Chama a service para deletar o barbeiro
+    const result = await barberService.deleteBarberService(id);
+
+    // Retorna a resposta com sucesso
+    res.status(status.OK).json({ message: result });
+  } catch (err: any) {
+    // Trata erros específicos
+    if (err.type === "not_found") {
+      res.status(status.NOT_FOUND).json({ message: err.message });
+    }
+    if (err.type === "database_error") {
+      res.status(status.INTERNAL_SERVER_ERROR).json({ message: err.message });
+    }
+
+    // Erro inesperado
+    console.error("Erro ao excluir barbeiro:", err);
+    res
+      .status(status.INTERNAL_SERVER_ERROR)
+      .json({ message: "Erro interno do servidor." });
   }
-  
-    
-
-}catch(err){
-  console.error('Erro ao excluir barbeiro no controller:' , err);
-  res.status(status.INTERNAL_SERVER_ERROR).json({message:'Erro ao tentar excluir Barbeiro'})
-}
-
-}
+};

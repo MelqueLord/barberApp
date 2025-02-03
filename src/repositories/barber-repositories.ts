@@ -51,7 +51,7 @@ export const findAllBarber = async (): Promise<barberModel[]> => {
     return results as barberModel[];
   } catch (err) {
     console.error("Erro ao consultar Barbeiros:", err);
-    throw new Error("Falha ao buscar as barbeiros no banco de dados.");
+    throw err;
   }
 };
 
@@ -83,7 +83,7 @@ export const findBarberById = async (
     return result[0];
   } catch (err) {
     console.error("Erro ao buscar barbeiro pelo ID:", err);
-    throw new Error("Falha ao buscar barbeiro");
+    throw err;
   }
 };
 
@@ -118,7 +118,7 @@ export const updateBarber = async (
     return updatedBarber;
   } catch (err) {
     console.error("Erro ao atualizar barbeiro:", err);
-    throw new Error("Falha ao atualizar barbeiro.");
+    throw err;
   }
 };
 
@@ -140,6 +140,6 @@ export const deleteBarber = async (id: number): Promise<string> => {
     return "Barbearia deletada com sucesso!";
   } catch (err) {
     console.error("Erro ao deletar Barbearia:", err);
-    throw new Error("Falha ao deletar a barbearia.");
+    throw err;
   }
 };
