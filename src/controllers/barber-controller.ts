@@ -7,7 +7,7 @@ import * as errorsUtils from "../utils/errorsUtils";
 export const postBarber = async (
   req: Request,
   res: Response
-): Promise<void> => {
+): Promise<Response> => {
   try {
     const file = req.file;
     const barber = req.body;
@@ -26,34 +26,39 @@ export const postBarber = async (
     );
 
     // Retorna a resposta com sucesso
-    res.status(status.CREATED).json(newBarber);
+    return res.status(status.CREATED).json(newBarber);
   } catch (err: any) {
     // Trata erros específicos
     if (err.type === "bad_request") {
-      res.status(status.BAD_REQUEST).json({ message: err.message });
+      return res.status(status.BAD_REQUEST).json({ message: err.message });
     }
     if (err.type === "database_error") {
-      res.status(status.INTERNAL_SERVER_ERROR).json({ message: err.message });
+      return res
+        .status(status.INTERNAL_SERVER_ERROR)
+        .json({ message: err.message });
     }
 
     // Erro inesperado
     console.error("Erro inesperado:", err);
-    res
+    return res
       .status(status.INTERNAL_SERVER_ERROR)
       .json({ message: "Erro interno do servidor." });
   }
 };
 
-export const getBarber = async (req: Request, res: Response): Promise<void> => {
+export const getBarber = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
   try {
     // Chama a service para buscar todos os barbeiros
     const barbers = await barberService.getAllBarberService();
 
     // Retorna a resposta com sucesso
-    res.status(status.OK).json(barbers);
+    return res.status(status.OK).json(barbers);
   } catch (err) {
     console.error("Erro ao buscar barbeiros:", err);
-    res
+    return res
       .status(status.INTERNAL_SERVER_ERROR)
       .json({ message: "Falha ao processar os dados dos barbeiros." });
   }
@@ -62,7 +67,7 @@ export const getBarber = async (req: Request, res: Response): Promise<void> => {
 export const getBarberById = async (
   req: Request,
   res: Response
-): Promise<void> => {
+): Promise<Response> => {
   try {
     const id = Number(req.params.id);
 
@@ -80,25 +85,28 @@ export const getBarberById = async (
     }
 
     // Retorna a resposta com sucesso
-    res.status(status.OK).json(barber);
+    return res.status(status.OK).json(barber);
   } catch (err: any) {
     // Trata erros específicos
     if (err.type === "bad_request") {
-      res.status(status.BAD_REQUEST).json({ message: err.message });
+      return res.status(status.BAD_REQUEST).json({ message: err.message });
     }
     if (err.type === "not_found") {
-      res.status(status.NOT_FOUND).json({ message: err.message });
+      return res.status(status.NOT_FOUND).json({ message: err.message });
     }
 
     // Erro inesperado
     console.error("Erro ao buscar barbeiro:", err);
-    res
+    return res
       .status(status.INTERNAL_SERVER_ERROR)
       .json({ message: "Erro interno do servidor." });
   }
 };
 
-export const putBarber = async (req: Request, res: Response): Promise<void> => {
+export const putBarber = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
   try {
     const { id } = req.params;
     const barber = req.body;
@@ -115,22 +123,24 @@ export const putBarber = async (req: Request, res: Response): Promise<void> => {
     );
 
     // Retorna a resposta com sucesso
-    res.status(status.OK).json(updatedBarber);
+    return res.status(status.OK).json(updatedBarber);
   } catch (err: any) {
     // Trata erros específicos
     if (err.type === "bad_request") {
-      res.status(status.BAD_REQUEST).json({ message: err.message });
+      return res.status(status.BAD_REQUEST).json({ message: err.message });
     }
     if (err.type === "not_found") {
-      res.status(status.NOT_FOUND).json({ message: err.message });
+      return res.status(status.NOT_FOUND).json({ message: err.message });
     }
     if (err.type === "database_error") {
-      res.status(status.INTERNAL_SERVER_ERROR).json({ message: err.message });
+      return res
+        .status(status.INTERNAL_SERVER_ERROR)
+        .json({ message: err.message });
     }
 
     // Erro inesperado
     console.error("Erro ao atualizar barbeiro:", err);
-    res
+    return res
       .status(status.INTERNAL_SERVER_ERROR)
       .json({ message: "Erro interno do servidor." });
   }
@@ -139,7 +149,7 @@ export const putBarber = async (req: Request, res: Response): Promise<void> => {
 export const deleteBarber = async (
   req: Request,
   res: Response
-): Promise<void> => {
+): Promise<Response> => {
   try {
     const id = Number(req.params.id);
 
@@ -151,20 +161,28 @@ export const deleteBarber = async (
     // Chama a service para deletar o barbeiro
     const result = await barberService.deleteBarberService(id);
 
+    if (!result) {
+      return res
+        .status(status.NOT_FOUND)
+        .json({ message: "Barbeiro não encontrado." });
+    }
+
     // Retorna a resposta com sucesso
-    res.status(status.OK).json({ message: result });
+    return res.status(status.OK).json({ message: result });
   } catch (err: any) {
     // Trata erros específicos
     if (err.type === "not_found") {
-      res.status(status.NOT_FOUND).json({ message: err.message });
+      return res.status(status.NOT_FOUND).json({ message: err.message });
     }
     if (err.type === "database_error") {
-      res.status(status.INTERNAL_SERVER_ERROR).json({ message: err.message });
+      return res
+        .status(status.INTERNAL_SERVER_ERROR)
+        .json({ message: err.message });
     }
 
     // Erro inesperado
     console.error("Erro ao excluir barbeiro:", err);
-    res
+    return res
       .status(status.INTERNAL_SERVER_ERROR)
       .json({ message: "Erro interno do servidor." });
   }

@@ -1,15 +1,15 @@
-export function badRequestError(message: string) {
+export const badRequestError = (message: string) => {
   return { type: "bad_request", message };
-}
+};
 
-export function notFoundError(message: string) {
+export const notFoundError = (message: string) => {
   return { type: "not_found", message };
-}
+};
 
-export function databaseError(message: string) {
+export const databaseError = (message: string) => {
   return { type: "database_error", message };
-}
+};
 
-export function unauthorizedError(message: string) {
+export const unauthorizedError = (message: string) => {
   return { type: "unauthorized", message };
-}
+};

@@ -1,155 +1,147 @@
-import { Request, Response } from 'express';
-import status from "http-status"; // Biblioteca statuscode
-import * as BarbershopService from '../services/barbershop-service';
-import { barbershopModel } from '../models/barbershop-models';
+import { Request, Response } from "express";
+import status from "http-status";
+import * as barbershopService from "../services/barbershop-service";
+import { validarId } from "../utils/validateId";
+import * as errorsUtils from "../utils/errorsUtils";
 
-
-
-export const postBarbershop = async (req: Request, res: Response): Promise<void> => {
+export const postBarbershop = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
   try {
-    
-    const barbershop : barbershopModel = req.body;
+    const barbershop = req.body;
 
-    // Validação básica de dados (exemplo)
-    if (!barbershop.nome && !barbershop.telefone && !barbershop.endereco && !barbershop.diaAbertura &&
-      !barbershop.diaFechamento && barbershop.abertura && !barbershop.fechamento
-     ) {
-      res.status(status.BAD_REQUEST).json({
-        message: 'Dados obrigatorios não preenchidos',
-      });
-      return;
+    // Validação de dados obrigatórios
+    if (
+      !barbershop.nome ||
+      !barbershop.telefone ||
+      !barbershop.endereco ||
+      !barbershop.diaAbertura ||
+      !barbershop.diaFechamento ||
+      !barbershop.abertura ||
+      !barbershop.fechamento
+    ) {
+      throw errorsUtils.badRequestError("Dados obrigatórios não preenchidos.");
     }
 
-    // Chamando o serviço para criar a barbearia
-    const result = await BarbershopService.createBarbershopService(barbershop);
-  
-    // Retornando resposta de sucesso com código 201 (Created)
-    res.status(status.CREATED).json({
-      message: 'Barbearia criada com sucesso!',
-      data: result,
-    });
+    // Chama a service para criar a barbearia
+    const newBarbershop = await barbershopService.createBarbershopService(
+      barbershop
+    );
+    return res.status(status.CREATED).json(newBarbershop);
   } catch (err: any) {
-    console.error('Erro no controller:', err);
-    res.status(status.INTERNAL_SERVER_ERROR).json({
-      message: err.message || 'Erro interno no servidor.',
-    });
+    if (err.type === "bad_request") {
+      return res.status(status.BAD_REQUEST).json({ message: err.message });
+    }
+    console.error("Erro inesperado:", err);
+    return res
+      .status(status.INTERNAL_SERVER_ERROR)
+      .json({ message: "Erro interno do servidor." });
   }
 };
 
-
-/**
- * Controller para buscar todas as barbearias
- */
-export const getBarbershops = async (req: Request, res: Response): Promise<void> => {
+export const getBarbershops = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
   try {
-    // Chama a função do serviço para buscar as barbearias
-    const barbershops = await BarbershopService.getAllBarbershopsService();
-
-    // Retorna a resposta com sucesso (status 200) e os dados
-    res.status(status.OK).json(barbershops);
+    const barbershops = await barbershopService.getAllBarbershopsService();
+    return res.status(status.OK).json(barbershops);
   } catch (err) {
-    // Se ocorrer erro, retorna um erro com status 500 (Erro Interno do Servidor)
-    console.error('Erro ao buscar barbearias:', err);
-    res.status(status.INTERNAL_SERVER_ERROR).json({
-      message: 'Falha ao processar os dados das barbearias',
-    });
+    console.error("Erro ao buscar barbearias:", err);
+    return res
+      .status(status.INTERNAL_SERVER_ERROR)
+      .json({ message: "Falha ao processar os dados das barbearias." });
   }
 };
 
-export const getBarbershopById = async (req: Request, res: Response): Promise<void> =>{
- try{
-     const id = Number(req.params.id);
-    
-
-      if(isNaN(id) || id<=0){
-        res.status(status.BAD_REQUEST).json({message:'Id informado inválido'})
-      }
-
-
-     const barbershop = await BarbershopService.getBarbershopByIdService(id);
-   
-
-     res.status(status.OK).json(barbershop);
-
-
- }catch(err: any){
-   // Identificar o tipo de erro para retornar mensagens adequadas
-   if(err.message ==='Barbearia não encontrada'){
-  res.status(status.NOT_FOUND).json({message: err.message})
-}else{
-  console.error('Erro ao buscar Barbearia por ID:', err);
-  res.status(status.INTERNAL_SERVER_ERROR).json({message: 'Erro ao buscar Barbearia especifica'})
-}
-  
- }
-
-}
-
-
-export const putBarbershop = async (req: Request, res: Response): Promise<Response> => {
+export const getBarbershopById = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
   try {
-    const { id } = req.params; // Obtém o ID da barbearia da URL
-    const barbershop = req.body; // Obtém os dados para atualização do corpo da requisição
-
-    // Validações simples no controller (apenas para campos essenciais da rota)
-    if (!id || isNaN(Number(id))) {
-      return res.status(status.BAD_REQUEST).json({ message: "ID inválido fornecido." });
+    const id = Number(req.params.id);
+    if (!validarId(id)) {
+      throw errorsUtils.badRequestError("ID fornecido é inválido.");
     }
 
-    if (!barbershop || Object.keys(barbershop).length === 0) {
-      return res.status(status.BAD_REQUEST).json({ message: "Nenhum dado fornecido para atualização." });
+    const barbershop = await barbershopService.getBarbershopByIdService(id);
+    if (!barbershop) {
+      throw errorsUtils.notFoundError("Barbearia não encontrada.");
     }
 
-    // Chama o serviço para processar a atualização
-    const updatedBarbershop = await BarbershopService.updateBarbershopService(Number(id), barbershop);
+    return res.status(status.OK).json(barbershop);
+  } catch (err: any) {
+    if (err.type === "bad_request") {
+      res.status(status.BAD_REQUEST).json({ message: err.message });
+    }
+    if (err.type === "not_found") {
+      return res.status(status.NOT_FOUND).json({ message: err.message });
+    }
+    console.error("Erro ao buscar barbearia:", err);
+    return res
+      .status(status.INTERNAL_SERVER_ERROR)
+      .json({ message: "Erro interno do servidor." });
+  }
+};
 
-    // Retorna a resposta com os dados atualizados
+export const putBarbershop = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  try {
+    const id = Number(req.params.id);
+    const barbershop = req.body;
+
+    if (!validarId(id)) {
+      throw errorsUtils.badRequestError("ID fornecido é inválido.");
+    }
+
+    const updatedBarbershop = await barbershopService.updateBarbershopService(
+      id,
+      barbershop
+    );
     return res.status(status.OK).json(updatedBarbershop);
-  } catch (error: any) {
-    console.error("Erro no controller ao atualizar barbearia:", error.message);
-
-    // Erros genéricos do servidor
-    if (error.message === "Nenhuma barbearia encontrada com o ID fornecido.") {
-      return res.status(status.NOT_FOUND).json({ message: error.message });
+  } catch (err: any) {
+    if (err.type === "bad_request") {
+      return res.status(status.BAD_REQUEST).json({ message: err.message });
     }
-
-    return res.status(status.INTERNAL_SERVER_ERROR).json({ message: "Erro ao atualizar barbearia." });
+    if (err.type === "not_found") {
+      return res.status(status.NOT_FOUND).json({ message: err.message });
+    }
+    console.error("Erro ao atualizar barbearia:", err);
+    return res
+      .status(status.INTERNAL_SERVER_ERROR)
+      .json({ message: "Erro interno do servidor." });
   }
 };
 
-
-
-export const deleteBarbershop = async (req: Request, res: Response): Promise<Response> => {
+export const deleteBarbershop = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
   try {
-    // Extraindo o ID da barbearia dos parâmetros da rota
-    const { id } = req.params;
+    const id = Number(req.params.id);
 
-    // Validando se o ID está presente e se é um número inteiro válido
-    if (!id || isNaN(Number(id))) {
-      return res.status(status.BAD_REQUEST).json({
-        message: "ID inválido. O ID deve ser um número inteiro válido.",
-      });
+    if (!validarId(id)) {
+      throw errorsUtils.badRequestError("ID fornecido é inválido.");
     }
 
-    // Chamando o service para deletar a barbearia
-    const result = await BarbershopService.deleteBarbershopService(Number(id));
+    const result = await barbershopService.deleteBarbershopService(id);
+    if (!result) {
+      return res
+        .status(status.NOT_FOUND)
+        .json({ message: "Barbearia não encontrada." });
+    }
 
-    // Respondendo ao cliente com sucesso
-    return res.status(status.OK).json({
-      message: result,
-    });
-  } catch (error: any) {
-    // Tratamento de erros do service
-    console.error("Erro no controlador de exclusão:", error.message);
-
-    // Respondendo com o código de status adequado
-    const statusCode =
-      error.message === "Nenhuma barbearia encontrada com o ID fornecido."
-        ? status.NOT_FOUND
-        : status.INTERNAL_SERVER_ERROR;
-
-    return res.status(statusCode).json({
-      message: error.message || "Erro ao tentar excluir a barbearia.",
-    });
+    return res.status(status.OK).json({ message: result });
+  } catch (err: any) {
+    if (err.type === "not_found") {
+      res.status(status.NOT_FOUND).json({ message: err.message });
+    }
+    console.error("Erro ao excluir barbearia:", err);
+    return res
+      .status(status.INTERNAL_SERVER_ERROR)
+      .json({ message: "Erro interno do servidor." });
   }
 };
